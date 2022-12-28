@@ -117,6 +117,13 @@ done(int argc, char *argv[1])
 	return 0;
 }
 
+static int
+print_rootfs_data()
+{
+	printf("%s\n", get_rootfs_data_name());
+	return 0;
+}
+
 int main(int argc, char **argv)
 {
 	if (argc < 2)
@@ -127,5 +134,7 @@ int main(int argc, char **argv)
 		return stop(argc, argv);
 	if (!strcmp(argv[1], "done"))
 		return done(argc, argv);
+	if (argc == 3 && !strcmp(argv[1], "print") && (!strcmp(argv[2], "rootfs_data")))
+		return print_rootfs_data();
 	return -1;
 }
