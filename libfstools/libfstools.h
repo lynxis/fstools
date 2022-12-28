@@ -64,4 +64,8 @@ enum fs_state fs_state_get(const char *dir);
 int fs_state_set(const char *dir, enum fs_state state);
 void selinux_restorecon(char *overlaydir);
 
+/* TODO: move to libubox */
+char *getenv_default(const char *name, char *def);
+char *read_kernel_cmdline(const char *name, char *buf, size_t bufsz);
+
 #endif

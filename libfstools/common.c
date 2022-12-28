@@ -3,6 +3,64 @@
 #include "common.h"
 #define BUFLEN 128
 
+char
+*getenv_default(const char *name, char *def)
+{
+	char *val = getenv(name);
+	if (!val)
+		return def;
+
+	return val;
+}
+
+/* a simple and slow kernel cmdline key=value parser returns first match
+ *
+ * Example kernel cmdlines:
+ *
+ * "foo=42" -> returns buf
+ * "foo=" -> buf[0] = '\0', returns buf
+ * "foo=42 bar=42" -> returns buf
+ * "foo" -> invalid, returns NULL
+ * "foo=42 foo=23" -> takes foo=42, ignores foo=23
+ * "bar=23 foo=42" -> returns buf
+ */
+char
+*read_kernel_cmdline(const char *name, char *buf, size_t bufsz)
+{
+	char cmdline[1024] = {};
+	char *pos, *tmp, *end;
+	size_t namesz = strlen(name);
+
+	tmp = read_string_from_file("/proc", "cmdline", cmdline, sizeof(cmdline));
+	if (!tmp)
+		return NULL;
+
+	end = cmdline + strlen(cmdline);
+	for (pos = cmdline; pos < end; pos += namesz) {
+		tmp = strstr(pos, name);
+		if (!tmp)
+			return NULL;
+
+		/* cmdline: 'foo' => invalid. A equal is required */
+		if (tmp + namesz + 1 >= end)
+			continue;
+
+		if (*(tmp + namesz + 1) == '=' && (((tmp - 1) < cmdline) || *(tmp - 1) == ' ')) {
+			pos = tmp + namesz;
+
+			/* check for foo=23 bar=42 */
+			tmp = strstr(pos, " ");
+			if (tmp)
+				*tmp = '\0';
+
+			strncpy(buf, pos, bufsz);
+			return buf;
+		}
+	}
+
+	return NULL;
+}
+
 int
 read_uint_from_file(char *dirname, char *filename, unsigned int *i)
 {
