@@ -1320,12 +1320,18 @@ static int find_block_mtd(char *name, char *part, int plen)
 	FILE *fp = fopen("/proc/mtd", "r");
 	static char line[256];
 	char *index = NULL;
+	char tmp[128];
+
+	if (strlen(name) >= sizeof(tmp))
+		return -ENOMEM;
+
+	snprintf(tmp, sizeof(tmp), "\"%s\"", name);
 
 	if(!fp)
 		return -1;
 
 	while (!index && fgets(line, sizeof(line), fp)) {
-		if (strstr(line, name)) {
+		if (strstr(line, tmp)) {
 			char *eol = strstr(line, ":");
 
 			if (!eol)
@@ -1470,7 +1476,7 @@ static int check_extroot(char *path)
 	FILE *fp;
 	int err;
 
-	err = find_block_mtd("\"rootfs\"", devpath, sizeof(devpath));
+	err = find_block_mtd("rootfs", devpath, sizeof(devpath));
 #ifdef UBIFS_EXTROOT
 	if (err) {
 		libubi_t libubi;
@@ -1652,7 +1658,7 @@ static int main_extroot(int argc, char **argv)
 	 */
 
 	/* Start with looking for MTD partition */
-	find_block_mtd("\"rootfs_data\"", blkdev_path, sizeof(blkdev_path));
+	find_block_mtd("rootfs_data", blkdev_path, sizeof(blkdev_path));
 	if (blkdev_path[0]) {
 		pr = find_block_info(NULL, NULL, blkdev_path);
 		if (pr && !strcmp(pr->type, "jffs2")) {
