@@ -12,6 +12,7 @@
  */
 
 #include "common.h"
+#include "rootfs_data.h"
 
 #include <linux/loop.h>
 
@@ -237,3 +238,38 @@ static struct driver rootdisk_driver = {
 };
 
 DRIVER(rootdisk_driver);
+
+char rootfs_data_name[ROOTFS_DATA_NAME_MAX] = {};
+
+/* find the volume name of the rootfs_data
+ *
+ * The name could be provided (high prio first):
+ * * device tree / chosen
+ * * kernel command line openwrt,rootfs_data=fooo
+ * * environment variable ROOTFS_DATA_VOL=foo
+ * * default to "rootfs_data"
+ */
+char
+*get_rootfs_data_name(void)
+{
+	char *name = NULL;
+
+	name = read_string_from_file("/sys/firmware/devicetree/base/chosen", "openwrt,rootfs_data", rootfs_data_name, sizeof(rootfs_data_name));
+	if (name && strlen(name) > 0)
+		return name;
+
+	name = read_kernel_cmdline("rootfs_data", rootfs_data_name, sizeof(rootfs_data_name));
+	if (name && strlen(name) > 0)
+		return name;
+
+	name = getenv_default("ROOTFS_DATA_VOL", NULL);
+	if (name && strlen(name) > 0) {
+		strncpy(rootfs_data_name, name, sizeof(rootfs_data_name) - 1);
+		rootfs_data_name[sizeof(rootfs_data_name) - 1] = '\0';
+		return rootfs_data_name;
+	}
+
+	strncpy(rootfs_data_name, "rootfs_data", sizeof(rootfs_data_name));
+	return rootfs_data_name;
+}
+

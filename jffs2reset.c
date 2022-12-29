@@ -131,9 +131,9 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	v = volume_find("rootfs_data");
+	v = volume_find(get_rootfs_data_name());
 	if (!v) {
-		ULOG_ERR("MTD partition 'rootfs_data' not found\n");
+		ULOG_ERR("rootfs_data: MTD partition '%s' not found\n", get_rootfs_data_name());
 		return -1;
 	}
 

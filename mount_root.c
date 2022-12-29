@@ -31,7 +31,7 @@ static int
 start(int argc, char *argv[1])
 {
 	struct volume *root;
-	struct volume *data = volume_find("rootfs_data");
+	struct volume *data = volume_find(get_rootfs_data_name());
 	struct stat s;
 
 	if (!getenv("PREINIT") && stat("/tmp/.preinit", &s))
@@ -96,7 +96,7 @@ stop(int argc, char *argv[1])
 static int
 done(int argc, char *argv[1])
 {
-	struct volume *v = volume_find("rootfs_data");
+	struct volume *v = volume_find(get_rootfs_data_name());
 
 	if (!v)
 		return -1;

@@ -44,6 +44,7 @@
 #include <libubox/vlist.h>
 #include <libubus.h>
 
+#include "libfstools/rootfs_data.h"
 #include "probe.h"
 
 #define AUTOFS_MOUNT_PATH       "/tmp/run/blockd/"
@@ -522,7 +523,7 @@ static bool mtdblock_is_nand(char *mtdnum)
 	buf[strlen(buf) - 1] = '\0'; /* strip final char (newline) */
 
 	/* only return true if name differs from 'rootfs' and 'rootfs_data' */
-	if (strcmp(buf, "rootfs") && strcmp(buf, "rootfs_data"))
+	if (strcmp(buf, "rootfs") && strcmp(buf, get_rootfs_data_name()))
 		return true;
 
 	/* --- CUT HERE --- */
@@ -1658,7 +1659,7 @@ static int main_extroot(int argc, char **argv)
 	 */
 
 	/* Start with looking for MTD partition */
-	find_block_mtd("rootfs_data", blkdev_path, sizeof(blkdev_path));
+	find_block_mtd(get_rootfs_data_name(), blkdev_path, sizeof(blkdev_path));
 	if (blkdev_path[0]) {
 		pr = find_block_info(NULL, NULL, blkdev_path);
 		if (pr && !strcmp(pr->type, "jffs2")) {
@@ -1684,7 +1685,7 @@ static int main_extroot(int argc, char **argv)
 	/* ... but it also could be an UBI volume */
 	memset(blkdev_path, 0, sizeof(blkdev_path));
 	libubi = libubi_open();
-	find_block_ubi(libubi, "rootfs_data", blkdev_path, sizeof(blkdev_path));
+	find_block_ubi(libubi, get_rootfs_data_name(), blkdev_path, sizeof(blkdev_path));
 	libubi_close(libubi);
 	if (blkdev_path[0]) {
 		char cfg[] = "/tmp/ubifs_cfg";
